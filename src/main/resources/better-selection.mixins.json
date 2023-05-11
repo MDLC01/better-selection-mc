@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.mdlc.betterselection.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "EditBoxMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

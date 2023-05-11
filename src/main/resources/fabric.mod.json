@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "better-selection",
+  "version": "${version}",
+  "name": "Better Text Selection",
+  "description": "Makes text more pleasant to select.",
+  "contact": {
+    "issues": "https://github.com/MDLC01/better-selection-mc/issues",
+    "sources": "https://github.com/MDLC01/better-selection-mc"
+  },
+  "authors": [
+    "MDLC01"
+  ],
+  "license": "Unlicense",
+  "icon": "assets/better-selection/icon.png",
+  "environment": "client",
+  "entrypoints": {},
+  "mixins": [
+    "better-selection.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.19",
+    "minecraft": "1.19.4"
+  }
+}
