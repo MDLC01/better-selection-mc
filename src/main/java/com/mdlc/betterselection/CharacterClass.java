@@ -22,6 +22,21 @@ public enum CharacterClass {
     PUNCTUATION;
 
     /**
+     * Tests if a character is a currency symbol.
+     * <p>
+     * Currency symbols belong to the {@linkplain #WORD Word} class.
+     *
+     * @param c
+     *         the character to test
+     * @return {@code true} if, and only if, {@code c} is a currency symbol
+     * @see <a
+     *         href="https://en.wikipedia.org/wiki/Currency_symbol">https://en.wikipedia.org/wiki/Currency_symbol</a>
+     */
+    private static boolean isCurrencySymbol(char c) {
+        return c == '؋' || c == '฿' || c == '₿' || c == '₵' || c == '¢' || c == '₡' || c == '$' || c == '₫' || c == '֏' || c == '€' || c == '₣' || c == '₲' || c == '₴' || c == '₭' || c == '₾' || c == '₺' || c == '₼' || c == '₦' || c == '₱' || c == '£' || c == '﷼' || c == '៛' || c == '₽' || c == '₹' || c == '₨' || c == '₪' || c == '⃀' || c == '৳' || c == '₸' || c == '₮' || c == '₩' || c == '¤';
+    }
+
+    /**
      * Tests if a character belongs to the Word class.
      *
      * @param c
@@ -30,7 +45,7 @@ public enum CharacterClass {
      * @see #WORD
      */
     private static boolean isWordCharacter(char c) {
-        return Character.isAlphabetic(c) || Character.isIdeographic(c) || Character.isDigit(c) || c == '_';
+        return Character.isAlphabetic(c) || Character.isIdeographic(c) || Character.isDigit(c) || c == '_' || isCurrencySymbol(c);
     }
 
     /**
