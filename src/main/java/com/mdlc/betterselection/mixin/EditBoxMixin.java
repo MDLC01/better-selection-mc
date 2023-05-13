@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
@@ -25,6 +26,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
 
     @Shadow @Final private Font font;
     @Shadow private String value;
+    @Shadow private int frame;
     @Shadow private int displayPos;
 
     @Shadow
@@ -86,6 +88,14 @@ public abstract class EditBoxMixin extends AbstractWidget {
     @Redirect(method = "moveCursorTo", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/components/EditBox;shiftPressed:Z"))
     private boolean redirectShiftPressed(EditBox instance) {
         return Screen.hasShiftDown();
+    }
+
+    /**
+     * When the cursor moves, restart flickering animation to make sure it is displayed.
+     */
+    @Inject(method = "setCursorPosition", at = @At("HEAD"))
+    private void onSetCursorPosition(int position, CallbackInfo ci) {
+        this.frame = 0;
     }
 
     /**
