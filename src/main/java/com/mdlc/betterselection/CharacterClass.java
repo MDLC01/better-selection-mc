@@ -29,11 +29,28 @@ public enum CharacterClass {
      * @param c
      *         the character to test
      * @return {@code true} if, and only if, {@code c} is a currency symbol
-     * @see <a
-     *         href="https://en.wikipedia.org/wiki/Currency_symbol">https://en.wikipedia.org/wiki/Currency_symbol</a>
+     * @see <a href="https://www.unicode.org/charts/PDF/U20A0.pdf">Currency Symbols Unicode block chart</a>
      */
     private static boolean isCurrencySymbol(char c) {
-        return c == '؋' || c == '฿' || c == '₿' || c == '₵' || c == '¢' || c == '₡' || c == '$' || c == '₫' || c == '֏' || c == '€' || c == '₣' || c == '₲' || c == '₴' || c == '₭' || c == '₾' || c == '₺' || c == '₼' || c == '₦' || c == '₱' || c == '£' || c == '﷼' || c == '៛' || c == '₽' || c == '₹' || c == '₨' || c == '₪' || c == '⃀' || c == '৳' || c == '₸' || c == '₮' || c == '₩' || c == '¤';
+        return c == '\u0024'
+                || '\u00A2' <= c && c <= '\u00A5'
+                || c == '\u0192'
+                || c == '\u058F'
+                || c == '\u060B'
+                || c == '\u09F2'
+                || c == '\u09F3'
+                || c == '\u0AF1'
+                || c == '\u0BF9'
+                || c == '\u0E3F'
+                || c == '\u17DB'
+                || c == '\u2133'
+                || c == '\u5143'
+                || c == '\u5186'
+                || c == '\u5706'
+                || c == '\u5713'
+                || c == '\uFDFC'
+                // Currency Symbols block
+                || '\u20A0' <= c && c <= '\u20CF';
     }
 
     /**
