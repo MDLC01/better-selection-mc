@@ -94,7 +94,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
      */
     @SuppressWarnings("InvalidInjectorMethodSignature")
     @Inject(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;moveCursorTo(I)V"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
-    private void modifyCursorPosition(double x, double y, int button, CallbackInfoReturnable<Boolean> cir, boolean isClickWithinBox, int mouseXInBox, String displayedText) {
+    private void moveCursorCloserToMouse(double x, double y, int button, CallbackInfoReturnable<Boolean> cir, boolean isClickWithinBox, int mouseXInBox, String displayedText) {
         // The prefix is the text between the beginning of the box and the clicked character (excluded)
         String prefix = this.font.plainSubstrByWidth(displayedText, mouseXInBox);
         int clickedCharacterIndex = this.displayPos + prefix.length();
