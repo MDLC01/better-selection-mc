@@ -1,6 +1,6 @@
 package com.mdlc.betterselection.mixin;
 
-import com.mdlc.betterselection.CharacterClass;
+import com.mdlc.betterselection.WordMachine;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
@@ -47,29 +47,23 @@ public abstract class EditBoxMixin extends AbstractWidget {
         int readOffset = directedCount > 0 ? 0 : -1;
         int count = Mth.abs(directedCount);
 
-        if (index == 0 && direction == -1 || index == this.value.length() && direction == 1) {
-            return index;
-        }
-
-        for (int i = 0; i < count; i++) {
-            // Words are separated by at least one whitespace
-            if (Character.isSpaceChar(this.value.charAt(index + readOffset))) {
-                index += direction;
-            }
-            if (index == 0 && direction == -1 || index == this.value.length() && direction == 1) {
-                return index;
-            }
-
-            CharacterClass characterClass = CharacterClass.fromCharacter(this.value.charAt(index + readOffset));
-            do {
-                index += direction;
-                if (index == 0 && direction == -1 || index == this.value.length() && direction == 1) {
-                    return index;
+        try {
+            for (int i = 0; i < count; i++) {
+                // Words are separated by at least one whitespace
+                if (WordMachine.isWhitespaceCharacter(this.value.charAt(index + readOffset))) {
+                    index += direction;
                 }
-            } while (characterClass.contains(this.value.charAt(index + readOffset)));
-        }
 
-        return index;
+                WordMachine machine = WordMachine.startRead(this.value.charAt(index + readOffset));
+                while (machine != WordMachine.DONE) {
+                    index += direction;
+                    machine = machine.read(this.value.charAt(index + readOffset));
+                }
+            }
+            return index;
+        } catch (IndexOutOfBoundsException exception) {
+            return index <= 0 ? 0 : this.value.length();
+        }
     }
 
     /**
