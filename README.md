@@ -1,5 +1,6 @@
 # Better Selection
 
+![Downloads](https://img.shields.io/modrinth/dt/better-selection)
 ![Game versions](https://img.shields.io/modrinth/game-versions/better-selection)
 ![GitHub tag](https://img.shields.io/github/tag/MDLC01/better-selection-mc)
 ![License](https://img.shields.io/github/license/MDLC01/better-selection-mc)
