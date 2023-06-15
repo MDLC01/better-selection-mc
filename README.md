@@ -1,3 +1,5 @@
+<img src="src/main/resources/assets/better-selection/icon.png" alt="Better Selection icon" width="128" align="right">
+
 # Better Selection
 
 ![Downloads](https://img.shields.io/modrinth/dt/better-selection)
