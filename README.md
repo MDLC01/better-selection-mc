@@ -1,3 +1,5 @@
+<img src="src/main/resources/assets/better-selection/icon.png" alt="Better Selection icon" width="128">
+
 # Better Selection
 
 This is a Fabric mod for Minecraft that makes text more pleasant to select. It improves the "move by word" feature (<kbd>Ctrl</kbd>+<kbd>←</kbd> and <kbd>Ctrl</kbd>+<kbd>→</kbd>), fixes [MC-260563](https://bugs.mojang.com/browse/MC-260563), and makes text selection with the mouse more precise.
