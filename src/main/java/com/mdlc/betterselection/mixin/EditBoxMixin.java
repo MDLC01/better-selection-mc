@@ -67,7 +67,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
     }
 
     /**
-     * Improves the Vanilla word-by-word cursor movement feature.
+     * Improves the vanilla word-by-word cursor movement feature.
      */
     @Inject(method = "getWordPosition(IIZ)I", at = @At("HEAD"), cancellable = true)
     private void onGetWordPosition(int directedCount, int index, boolean skipWhitespaceAfterWord, CallbackInfoReturnable<Integer> cir) {

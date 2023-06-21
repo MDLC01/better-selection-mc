@@ -17,7 +17,7 @@ Yes, it does.
 
 ### Does it add keyboard shortcuts?
 
-No. This mod only improves Vanilla features.
+No. This mod only improves vanilla features.
 
 ### Does it fix [MC-121278](https://bugs.mojang.com/browse/MC-121278)?
 
