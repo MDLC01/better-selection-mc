@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
@@ -27,11 +26,15 @@ public abstract class EditBoxMixin extends AbstractWidget {
     @Shadow @Final private Font font;
     @Shadow private String value;
     @Shadow private int frame;
+    @Shadow private boolean bordered;
+    @Shadow private boolean shiftPressed;
     @Shadow private int displayPos;
 
     @Shadow
     public abstract void moveCursorTo(int i);
 
+    @Shadow
+    public abstract int getInnerWidth();
 
     /**
      * Traverses one or multiple words.
@@ -75,17 +78,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
     }
 
     /**
-     * Tests if the shift key is down instead directly instead of using a cached value that might not be up-to-date.
-     * <p>
-     * Fixes <a href="https://bugs.mojang.com/browse/MC-260563">MC-260563</a>.
-     */
-    @Redirect(method = "moveCursorTo", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/components/EditBox;shiftPressed:Z"))
-    private boolean redirectShiftPressed(EditBox instance) {
-        return Screen.hasShiftDown();
-    }
-
-    /**
-     * When the cursor moves, restart flickering animation to make sure it is displayed.
+     * When the cursor moves, restarts flickering animation to make sure it is displayed.
      */
     @Inject(method = "setCursorPosition", at = @At("HEAD"))
     private void onSetCursorPosition(int position, CallbackInfo ci) {
@@ -93,28 +86,51 @@ public abstract class EditBoxMixin extends AbstractWidget {
     }
 
     /**
-     * When the mouse is clicked over a character, moves the cursor to the closest possible position, instead of always
-     * after the clicked character.
+     * Computes the index of the character boundary whose abscissa is closest to {@code x} in {@code text} for
+     * {@code font}.
+     */
+    private static int nearestCharacterBoundary(Font font, String text, int x) {
+        // The prefix ends before clicked character
+        String prefix = font.plainSubstrByWidth(text, x);
+        int clickedCharacterIndex = prefix.length();
+        if (clickedCharacterIndex >= text.length()) {
+            return clickedCharacterIndex;
+        } else {
+            int prefixWidth = font.width(prefix);
+            int clickedCharacterWidth = font.width(String.valueOf(text.charAt(clickedCharacterIndex)));
+            int spaceLeft = x - prefixWidth;
+            int spaceRight = prefixWidth + clickedCharacterWidth - x;
+            if (spaceRight > spaceLeft) {
+                return clickedCharacterIndex;
+            } else {
+                return clickedCharacterIndex + 1;
+            }
+        }
+    }
+
+    /**
+     * Makes mouse selection more precise and fix <a href="https://bugs.mojang.com/browse/MC-260563">MC-260563</a>.
      */
     @SuppressWarnings("InvalidInjectorMethodSignature")
     @Inject(method = "onClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;moveCursorTo(I)V"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
     private void moveCursorCloserToMouse(double x, double y, CallbackInfo ci, int mouseXInBox, String displayedText) {
-        // The prefix is the text between the beginning of the box and the clicked character (excluded)
-        String prefix = this.font.plainSubstrByWidth(displayedText, mouseXInBox);
-        int clickedCharacterIndex = this.displayPos + prefix.length();
-        if (clickedCharacterIndex == this.value.length()) {
-            this.moveCursorTo(clickedCharacterIndex);
-        } else {
-            int prefixWidth = this.font.width(prefix);
-            int clickedCharacterWidth = this.font.width(displayedText.substring(prefix.length(), prefix.length() + 1));
-            int spaceLeft = mouseXInBox - prefixWidth;
-            int spaceRight = prefixWidth + clickedCharacterWidth - mouseXInBox;
-            if (spaceRight > spaceLeft) {
-                this.moveCursorTo(clickedCharacterIndex);
-            } else {
-                this.moveCursorTo(clickedCharacterIndex + 1);
-            }
-        }
+        this.shiftPressed = Screen.hasShiftDown();
+        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox));
         ci.cancel();
+    }
+
+    /**
+     * Enables text selection by dragging the mouse.
+     */
+    @Override
+    protected void onDrag(double x, double y, double deltaX, double deltaY) {
+        this.shiftPressed = true;
+        int mouseXInBox = Mth.floor(x) - this.getX();
+        if (this.bordered) {
+            mouseXInBox -= 4;
+        }
+        String displayedText = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.getInnerWidth());
+        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox));
+        super.onDrag(x, y, deltaX, deltaY);
     }
 }
