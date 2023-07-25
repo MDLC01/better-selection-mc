@@ -7,14 +7,19 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+
+import static net.minecraft.client.Minecraft.ON_OSX;
 
 
 @Mixin(EditBox.class)
@@ -36,6 +41,16 @@ public abstract class EditBoxMixin extends AbstractWidget {
     @Shadow
     public abstract int getInnerWidth();
 
+    @Shadow public abstract void moveCursorToEnd();
+
+    @Shadow public abstract void moveCursorToStart();
+
+    @Shadow public abstract void setValue(String string);
+
+    @Shadow public abstract String getValue();
+
+    @Shadow public abstract int getCursorPosition();
+
     /**
      * Traverses one or multiple words.
      *
@@ -45,6 +60,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
      *         the initial position of the cursor
      * @return the index of the position of the cursor after traversing the words
      */
+    @Unique
     private int traverseWord(int directedCount, int index) {
         int direction = directedCount > 0 ? 1 : -1;
         int readOffset = directedCount > 0 ? 0 : -1;
@@ -89,6 +105,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
      * Computes the index of the character boundary whose abscissa is closest to {@code x} in {@code text} for
      * {@code font}.
      */
+    @Unique
     private static int nearestCharacterBoundary(Font font, String text, int x) {
         // The prefix ends before clicked character
         String prefix = font.plainSubstrByWidth(text, x);
@@ -132,5 +149,46 @@ public abstract class EditBoxMixin extends AbstractWidget {
         String displayedText = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.getInnerWidth());
         this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox));
         super.onDrag(x, y, deltaX, deltaY);
+    }
+
+    /**
+     * On macOS, use Option + arrow to navigate by word instead of Command + arrow, as is standard on macOS
+     */
+    @Redirect(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;hasControlDown()Z"))
+    private boolean onHasControlDown(){
+        return ON_OSX ? Screen.hasAltDown() : Screen.hasControlDown();
+    }
+
+    /**
+     * On macOS, use Option + arrow to navigate by word instead of Command + arrow, as is standard on macOS
+     */
+    @Redirect(method = "deleteText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;hasControlDown()Z"))
+    private boolean onHasControlDownDelete(){
+        return ON_OSX ? Screen.hasAltDown() : Screen.hasControlDown();
+    }
+
+    /**
+     * Handle Command + arrow/backspace/delete on macOS, going to either the start or end.
+     */
+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+    private void handleMacPresses(int key, int j, int k, CallbackInfoReturnable<Boolean> cir){
+        if (ON_OSX && Screen.hasControlDown()) {
+            switch (key) {
+                case GLFW.GLFW_KEY_RIGHT -> moveCursorToEnd();
+                case GLFW.GLFW_KEY_LEFT -> moveCursorToStart();
+                case GLFW.GLFW_KEY_BACKSPACE -> {
+                    setValue(getValue().substring(getCursorPosition()));
+                    moveCursorToStart();
+                }
+                case GLFW.GLFW_KEY_DELETE -> {
+                    setValue(getValue().substring(0, getCursorPosition()));
+                    moveCursorToEnd();
+                }
+                default -> {
+                    return;
+                }
+            }
+            cir.setReturnValue(true);
+        }
     }
 }
