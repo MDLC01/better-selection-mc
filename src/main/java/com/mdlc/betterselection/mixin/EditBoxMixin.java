@@ -41,15 +41,20 @@ public abstract class EditBoxMixin extends AbstractWidget {
     @Shadow
     public abstract int getInnerWidth();
 
-    @Shadow public abstract void moveCursorToEnd();
+    @Shadow
+    public abstract void moveCursorToEnd();
 
-    @Shadow public abstract void moveCursorToStart();
+    @Shadow
+    public abstract void moveCursorToStart();
 
-    @Shadow public abstract void setValue(String string);
+    @Shadow
+    public abstract void setValue(String string);
 
-    @Shadow public abstract String getValue();
+    @Shadow
+    public abstract String getValue();
 
-    @Shadow public abstract int getCursorPosition();
+    @Shadow
+    public abstract int getCursorPosition();
 
     /**
      * Traverses one or multiple words.
@@ -152,18 +157,18 @@ public abstract class EditBoxMixin extends AbstractWidget {
     }
 
     /**
-     * On macOS, use Option + arrow to navigate by word instead of Command + arrow, as is standard on macOS
+     * On macOS, use Option + arrow to navigate by word instead of Command + arrow, as is standard on macOS.
      */
     @Redirect(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;hasControlDown()Z"))
-    private boolean onHasControlDown(){
+    private boolean onHasControlDown() {
         return ON_OSX ? Screen.hasAltDown() : Screen.hasControlDown();
     }
 
     /**
-     * On macOS, use Option + arrow to navigate by word instead of Command + arrow, as is standard on macOS
+     * On macOS, use Option + arrow to navigate by word instead of Command + arrow, as is standard on macOS.
      */
     @Redirect(method = "deleteText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;hasControlDown()Z"))
-    private boolean onHasControlDownDelete(){
+    private boolean onHasControlDownDelete() {
         return ON_OSX ? Screen.hasAltDown() : Screen.hasControlDown();
     }
 
@@ -171,7 +176,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
      * Handle Command + arrow/backspace/delete on macOS, going to either the start or end.
      */
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void handleMacPresses(int key, int j, int k, CallbackInfoReturnable<Boolean> cir){
+    private void handleMacPresses(int key, int j, int k, CallbackInfoReturnable<Boolean> cir) {
         if (ON_OSX && Screen.hasControlDown()) {
             switch (key) {
                 case GLFW.GLFW_KEY_RIGHT -> moveCursorToEnd();
