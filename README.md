@@ -15,9 +15,14 @@ This is a Fabric mod for Minecraft that makes text more pleasant to select. It i
 
 Yes, it does.
 
-### Does it add keyboard shortcuts?
+### Does it support macOS?
 
-No. This mod only improves vanilla features.
+Yes, macOS should be supported properly:
+- <kbd>⌘ Command</kbd>+<kbd>←</kbd> moves the cursor to the beginning of the line,
+- <kbd>⌘ Command</kbd>+<kbd>→</kbd> moves the cursor to the end of the line,
+- <kbd>⌘ Command</kbd>+<kbd>⌫ Backspace</kbd> deletes everything to the left of the cursor,
+- <kbd>⌘ Command</kbd>+<kbd>⌦ Delete</kbd> deletes everything to the right of the cursor,
+- Shortcuts that use <kbd>Ctrl</kbd> on Windows use <kbd>⌥ Option</kbd> on macOS.
 
 ### Does it fix [MC-121278](https://bugs.mojang.com/browse/MC-121278)?
 
