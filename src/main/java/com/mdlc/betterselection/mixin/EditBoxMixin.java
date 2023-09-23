@@ -30,22 +30,21 @@ public abstract class EditBoxMixin extends AbstractWidget {
 
     @Shadow @Final private Font font;
     @Shadow private String value;
-    @Shadow private int frame;
     @Shadow private boolean bordered;
-    @Shadow private boolean shiftPressed;
     @Shadow private int displayPos;
+    @Shadow private long focusedTime;
 
     @Shadow
-    public abstract void moveCursorTo(int i);
+    public abstract void moveCursorTo(int i, boolean extend);
 
     @Shadow
     public abstract int getInnerWidth();
 
     @Shadow
-    public abstract void moveCursorToEnd();
+    public abstract void moveCursorToEnd(boolean extend);
 
     @Shadow
-    public abstract void moveCursorToStart();
+    public abstract void moveCursorToStart(boolean extend);
 
     @Shadow
     public abstract void setValue(String string);
@@ -103,7 +102,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
      */
     @Inject(method = "setCursorPosition", at = @At("HEAD"))
     private void onSetCursorPosition(int position, CallbackInfo ci) {
-        this.frame = 0;
+        this.focusedTime = 0;
     }
 
     /**
@@ -131,13 +130,12 @@ public abstract class EditBoxMixin extends AbstractWidget {
     }
 
     /**
-     * Makes mouse selection more precise and fix <a href="https://bugs.mojang.com/browse/MC-260563">MC-260563</a>.
+     * Makes mouse selection more precise.
      */
     @SuppressWarnings("InvalidInjectorMethodSignature")
-    @Inject(method = "onClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;moveCursorTo(I)V"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
+    @Inject(method = "onClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;moveCursorTo(IZ)V"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
     private void moveCursorCloserToMouse(double x, double y, CallbackInfo ci, int mouseXInBox, String displayedText) {
-        this.shiftPressed = Screen.hasShiftDown();
-        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox));
+        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox), Screen.hasShiftDown());
         ci.cancel();
     }
 
@@ -146,13 +144,12 @@ public abstract class EditBoxMixin extends AbstractWidget {
      */
     @Override
     protected void onDrag(double x, double y, double deltaX, double deltaY) {
-        this.shiftPressed = true;
         int mouseXInBox = Mth.floor(x) - this.getX();
         if (this.bordered) {
             mouseXInBox -= 4;
         }
         String displayedText = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.getInnerWidth());
-        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox));
+        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox), true);
         super.onDrag(x, y, deltaX, deltaY);
     }
 
@@ -179,15 +176,15 @@ public abstract class EditBoxMixin extends AbstractWidget {
     private void handleMacPresses(int key, int j, int k, CallbackInfoReturnable<Boolean> cir) {
         if (ON_OSX && Screen.hasControlDown()) {
             switch (key) {
-                case GLFW.GLFW_KEY_RIGHT -> moveCursorToEnd();
-                case GLFW.GLFW_KEY_LEFT -> moveCursorToStart();
+                case GLFW.GLFW_KEY_RIGHT -> moveCursorToEnd(Screen.hasShiftDown());
+                case GLFW.GLFW_KEY_LEFT -> moveCursorToStart(Screen.hasShiftDown());
                 case GLFW.GLFW_KEY_BACKSPACE -> {
                     setValue(getValue().substring(getCursorPosition()));
-                    moveCursorToStart();
+                    moveCursorToStart(Screen.hasShiftDown());
                 }
                 case GLFW.GLFW_KEY_DELETE -> {
                     setValue(getValue().substring(0, getCursorPosition()));
-                    moveCursorToEnd();
+                    moveCursorToEnd(Screen.hasShiftDown());
                 }
                 default -> {
                     return;

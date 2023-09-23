@@ -7,7 +7,7 @@
 [![GitHub release](https://img.shields.io/github/release/MDLC01/better-selection-mc)](https://github.com/MDLC01/better-selection-mc/releases/latest)
 [![License](https://img.shields.io/github/license/MDLC01/better-selection-mc)](UNLICENSE)
 
-This is a Fabric mod for Minecraft that makes text more pleasant to select. It improves the "move by word" feature (<kbd>Ctrl</kbd>+<kbd>←</kbd> and <kbd>Ctrl</kbd>+<kbd>→</kbd>), fixes [MC-147766](https://bugs.mojang.com/browse/MC-147766), and enables text selection with the mouse.
+This is a Fabric mod for Minecraft that makes text more pleasant to select. It improves the "move by word" feature (<kbd>Ctrl</kbd>+<kbd>←</kbd> and <kbd>Ctrl</kbd>+<kbd>→</kbd>), and enables text selection with the mouse.
 
 ## Q&A
 
