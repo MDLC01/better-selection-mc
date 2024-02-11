@@ -1,6 +1,7 @@
 package com.mdlc.betterselection.mixin;
 
 import com.mdlc.betterselection.WordMachine;
+import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
@@ -102,7 +103,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
      */
     @Inject(method = "setCursorPosition", at = @At("HEAD"))
     private void onSetCursorPosition(int position, CallbackInfo ci) {
-        this.focusedTime = 0;
+        this.focusedTime = Util.getMillis();
     }
 
     /**
