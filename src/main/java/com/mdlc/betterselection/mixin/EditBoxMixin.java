@@ -136,7 +136,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
     @SuppressWarnings("InvalidInjectorMethodSignature")
     @Inject(method = "onClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;moveCursorTo(IZ)V"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
     private void moveCursorCloserToMouse(double x, double y, CallbackInfo ci, int mouseXInBox, String displayedText) {
-        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox), Screen.hasShiftDown());
+        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox) + this.displayPos, Screen.hasShiftDown());
         ci.cancel();
     }
 
@@ -150,7 +150,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
             mouseXInBox -= 4;
         }
         String displayedText = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.getInnerWidth());
-        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox), true);
+        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox) + this.displayPos, true);
         super.onDrag(x, y, deltaX, deltaY);
     }
 
