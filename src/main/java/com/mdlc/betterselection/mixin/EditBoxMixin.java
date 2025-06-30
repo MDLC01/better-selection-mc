@@ -1,5 +1,6 @@
 package com.mdlc.betterselection.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mdlc.betterselection.WordMachine;
 import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
@@ -133,9 +134,8 @@ public abstract class EditBoxMixin extends AbstractWidget {
     /**
      * Makes mouse selection more precise.
      */
-    @SuppressWarnings("InvalidInjectorMethodSignature")
-    @Inject(method = "onClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;moveCursorTo(IZ)V"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
-    private void moveCursorCloserToMouse(double x, double y, CallbackInfo ci, int mouseXInBox, String displayedText) {
+    @Inject(method = "onClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;moveCursorTo(IZ)V"), cancellable = true)
+    private void moveCursorCloserToMouse(double x, double y, CallbackInfo ci, @Local int mouseXInBox, @Local String displayedText) {
         this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox) + this.displayPos, Screen.hasShiftDown());
         ci.cancel();
     }
