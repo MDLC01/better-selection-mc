@@ -1,15 +1,12 @@
 package com.mdlc.betterselection.mixin;
 
-import com.llamalad7.mixinextras.sugar.Local;
 import com.mdlc.betterselection.WordMachine;
 import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,9 +16,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
-
-import static net.minecraft.client.Minecraft.ON_OSX;
 
 
 @Mixin(EditBox.class)
@@ -32,30 +26,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
 
     @Shadow @Final private Font font;
     @Shadow private String value;
-    @Shadow private boolean bordered;
-    @Shadow private int displayPos;
     @Shadow private long focusedTime;
-
-    @Shadow
-    public abstract void moveCursorTo(int i, boolean extend);
-
-    @Shadow
-    public abstract int getInnerWidth();
-
-    @Shadow
-    public abstract void moveCursorToEnd(boolean extend);
-
-    @Shadow
-    public abstract void moveCursorToStart(boolean extend);
-
-    @Shadow
-    public abstract void setValue(String string);
-
-    @Shadow
-    public abstract String getValue();
-
-    @Shadow
-    public abstract int getCursorPosition();
 
     /**
      * Traverses one or multiple words.
@@ -113,85 +84,27 @@ public abstract class EditBoxMixin extends AbstractWidget {
      */
     @Unique
     private static int nearestCharacterBoundary(Font font, String text, int x) {
-        // The prefix ends before clicked character
         String prefix = font.plainSubstrByWidth(text, x);
         int clickedCharacterIndex = prefix.length();
+
+        // The prefix ends before clicked character
         if (clickedCharacterIndex >= text.length()) {
             return clickedCharacterIndex;
-        } else {
-            int prefixWidth = font.width(prefix);
-            int clickedCharacterWidth = font.width(String.valueOf(text.charAt(clickedCharacterIndex)));
-            int spaceLeft = x - prefixWidth;
-            int spaceRight = prefixWidth + clickedCharacterWidth - x;
-            if (spaceRight > spaceLeft) {
-                return clickedCharacterIndex;
-            } else {
-                return clickedCharacterIndex + 1;
-            }
         }
+
+        int prefixWidth = font.width(prefix);
+        int clickedCharacterWidth = font.width(String.valueOf(text.charAt(clickedCharacterIndex)));
+        int spaceLeft = x - prefixWidth;
+        int spaceRight = prefixWidth + clickedCharacterWidth - x;
+        return spaceLeft > spaceRight ? clickedCharacterIndex + 1 : clickedCharacterIndex;
     }
 
     /**
      * Makes mouse selection more precise.
      */
-    @Inject(method = "onClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;moveCursorTo(IZ)V"), cancellable = true)
-    private void moveCursorCloserToMouse(double x, double y, CallbackInfo ci, @Local int mouseXInBox, @Local String displayedText) {
-        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox) + this.displayPos, Screen.hasShiftDown());
-        ci.cancel();
-    }
-
-    /**
-     * Enables text selection by dragging the mouse.
-     */
-    @Override
-    protected void onDrag(double x, double y, double deltaX, double deltaY) {
-        int mouseXInBox = Mth.floor(x) - this.getX();
-        if (this.bordered) {
-            mouseXInBox -= 4;
-        }
-        String displayedText = this.font.plainSubstrByWidth(this.value.substring(this.displayPos), this.getInnerWidth());
-        this.moveCursorTo(nearestCharacterBoundary(this.font, displayedText, mouseXInBox) + this.displayPos, true);
-        super.onDrag(x, y, deltaX, deltaY);
-    }
-
-    /**
-     * On macOS, use Option + arrow to navigate by word instead of Command + arrow, as is standard on macOS.
-     */
-    @Redirect(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;hasControlDown()Z"))
-    private boolean onHasControlDown() {
-        return ON_OSX ? Screen.hasAltDown() : Screen.hasControlDown();
-    }
-
-    /**
-     * On macOS, use Option + arrow to navigate by word instead of Command + arrow, as is standard on macOS.
-     */
-    @Redirect(method = "deleteText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;hasControlDown()Z"))
-    private boolean onHasControlDownDelete() {
-        return ON_OSX ? Screen.hasAltDown() : Screen.hasControlDown();
-    }
-
-    /**
-     * Handle Command + arrow/backspace/delete on macOS, going to either the start or end.
-     */
-    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void handleMacPresses(int key, int j, int k, CallbackInfoReturnable<Boolean> cir) {
-        if (ON_OSX && Screen.hasControlDown()) {
-            switch (key) {
-                case GLFW.GLFW_KEY_RIGHT -> moveCursorToEnd(Screen.hasShiftDown());
-                case GLFW.GLFW_KEY_LEFT -> moveCursorToStart(Screen.hasShiftDown());
-                case GLFW.GLFW_KEY_BACKSPACE -> {
-                    setValue(getValue().substring(getCursorPosition()));
-                    moveCursorToStart(Screen.hasShiftDown());
-                }
-                case GLFW.GLFW_KEY_DELETE -> {
-                    setValue(getValue().substring(0, getCursorPosition()));
-                    moveCursorToEnd(Screen.hasShiftDown());
-                }
-                default -> {
-                    return;
-                }
-            }
-            cir.setReturnValue(true);
-        }
+    @Redirect(method = "findClickedPositionInText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Font;plainSubstrByWidth(Ljava/lang/String;I)Ljava/lang/String;"))
+    private String findAppropriateCursorPosition(Font instance, String displayedText, int x) {
+        // Returns the substring that should be to the left of the caret.
+        return displayedText.substring(0, nearestCharacterBoundary(this.font, displayedText, x));
     }
 }
