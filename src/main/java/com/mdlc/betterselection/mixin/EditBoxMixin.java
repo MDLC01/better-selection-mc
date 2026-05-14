@@ -1,5 +1,7 @@
 package com.mdlc.betterselection.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mdlc.betterselection.WordMachine;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -7,13 +9,11 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -24,7 +24,6 @@ public abstract class EditBoxMixin extends AbstractWidget {
         super(x, y, width, height, message);
     }
 
-    @Shadow @Final private Font font;
     @Shadow private String value;
     @Shadow private long focusedTime;
 
@@ -66,15 +65,15 @@ public abstract class EditBoxMixin extends AbstractWidget {
      * Improves the vanilla word-by-word cursor movement feature.
      */
     @Inject(method = "getWordPosition(IIZ)I", at = @At("HEAD"), cancellable = true)
-    private void onGetWordPosition(int directedCount, int index, boolean skipWhitespaceAfterWord, CallbackInfoReturnable<Integer> cir) {
-        cir.setReturnValue(traverseWord(directedCount, index));
+    private void onGetWordPosition(int dir, int from, boolean stripSpaces, CallbackInfoReturnable<Integer> cir) {
+        cir.setReturnValue(traverseWord(dir, from));
     }
 
     /**
      * When the cursor moves, restarts flickering animation to make sure it is displayed.
      */
     @Inject(method = "setCursorPosition", at = @At("HEAD"))
-    private void onSetCursorPosition(int position, CallbackInfo ci) {
+    private void onSetCursorPosition(int pos, CallbackInfo ci) {
         this.focusedTime = Util.getMillis();
     }
 
@@ -102,9 +101,9 @@ public abstract class EditBoxMixin extends AbstractWidget {
     /**
      * Makes mouse selection more precise.
      */
-    @Redirect(method = "findClickedPositionInText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Font;plainSubstrByWidth(Ljava/lang/String;I)Ljava/lang/String;"))
-    private String findAppropriateCursorPosition(Font instance, String displayedText, int x) {
+    @WrapOperation(method = "findClickedPositionInText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Font;plainSubstrByWidth(Ljava/lang/String;I)Ljava/lang/String;"))
+    private String findAppropriateCursorPosition(Font instance, String str, int width, Operation<String> original) {
         // Returns the substring that should be to the left of the caret.
-        return displayedText.substring(0, nearestCharacterBoundary(this.font, displayedText, x));
+        return str.substring(0, nearestCharacterBoundary(instance, str, width));
     }
 }
