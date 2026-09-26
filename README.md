@@ -23,7 +23,3 @@ Yes, macOS should be supported properly:
 - <kbd>⌘ Command</kbd>+<kbd>⌫ Backspace</kbd> deletes everything to the left of the cursor,
 - <kbd>⌘ Command</kbd>+<kbd>⌦ Delete</kbd> deletes everything to the right of the cursor,
 - Shortcuts that use <kbd>Ctrl</kbd> on Windows use <kbd>⌥ Option</kbd> on macOS.
-
-### Does it fix [MC-121278](https://bugs.mojang.com/browse/MC-121278)?
-
-No, it does not. But I made another mod that does: [Universal Shortcuts](https://modrinth.com/mod/universal-shortcuts).
